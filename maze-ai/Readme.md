@@ -14,22 +14,22 @@ Prerequisites
 
 Ensure you have Python installed on your system.
 
-python --version
+            python --version
 
 Clone the Repository
 
-git clone https://github.com/yourusername/maze-ai.git
-cd maze-ai
+            git clone https://github.com/yourusername/maze-ai.git
+            cd maze-ai
 
 Usage
 
 Run the following command to start the application:
 
-python maze.py maze_file_location.txt
+    python maze.py maze_file_location.txt  
 
-            OR
+OR
 
-python a_alg.py maze_file_location.txt
+    python a_alg.py maze_file_location.txt
 
 Example Output
 
