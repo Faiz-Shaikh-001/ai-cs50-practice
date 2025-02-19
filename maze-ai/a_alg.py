@@ -1,6 +1,5 @@
-
+import heapq
 import sys
-
 
 class Node():
 
@@ -8,53 +7,16 @@ class Node():
         self.parent = parent
         self.state = state
         self.action = action
+        self.g = 0  # Cost from start node to this node
+        self.h = 0  # Cost to reach goal node from this node
+        self.f = 0  # total cost
 
+    def __lt__(self, other):
+        return self.f < other.f
+    
 
-class StackFrontier():
-
-    def __init__(self):
-        # Initializing frontier as an empty array since nothing is added in the beginning
-        self.frontier = []
-
-    def add(self, node):
-        # add functions appends the next node to the frontier
-        self.frontier.append(node)
-
-    def contains_state(self, state):
-        # contains state check if any of the frontier node contains the required state
-        return any(node.state == state for node in self.frontier)
-
-    def empty(self):
-        # returns true if the frontier array is empty
-        return len(self.frontier) == 0
-
-    def remove(self):
-        if self.empty():
-            raise Exception("Empty frontier")
-        else:
-            # selects the last node in the frontier array
-            node = self.frontier[-1]
-            # remove the last node by using array slicing and keep all other node
-            self.frontier = self.frontier[:-1]
-            # returns the selected node
-            return node
-
-# Extends StackFrontier
-
-
-class QueueFrontier(StackFrontier):
-
-    # overwrites remove function
-    def remove(self):
-        if self.empty():
-            raise Exception("Empty frontier")
-        else:
-            # selects the first node in the frontier array
-            node = self.frontier[0]
-            # removes the first node and keeps the other node
-            self.frontier = self.frontier[1:]
-            # returns the selected node
-            return node
+def heuristic(start, goal):
+    return abs(goal[0] - start[0]) + abs(goal[1] - start[1])
 
 
 class Maze():
@@ -133,23 +95,26 @@ class Maze():
         return result
 
 
-    def solve(self):
 
-        print("solve is running")
+    def solve(self):
 
         self.num_of_states_explored = 0
 
         start = Node(state=self.start, parent=None, action=None)
-        frontier = QueueFrontier()
-        frontier.add(start)
+        open_list = [] 
+        open_set = set()
 
         self.explored = set()
 
+        heapq.heappush(open_list, start)
+        open_set.add(start.state)
+
         while True:
-            if frontier.empty():
+            if len(open_list) == 0:
                 raise Exception("No solution")
             
-            node = frontier.remove()
+            node = heapq.heappop(open_list)
+            open_set.remove(node.state)
             self.num_of_states_explored += 1
 
             if node.state == self.goal:
@@ -170,10 +135,14 @@ class Maze():
             self.explored.add(node.state)
 
             for action, state in self.neighbours(node.state):
-                if not frontier.contains_state(state) and state not in self.explored:
+                if state not in open_set and state not in self.explored:
                     child = Node(state=state, parent=node, action=action)
-                    frontier.add(child)
-
+                    child.g = node.g + 1
+                    child.h = heuristic(state, self.goal)
+                    child.f = child.g + child.h
+                    heapq.heappush(open_list, child)
+                    open_set.add(state)
+                    
 
     def output_image(self, filename, show_solution=True, show_explored=False):
         from PIL import Image, ImageDraw
@@ -217,7 +186,6 @@ class Maze():
                 )
                 
         img.save(filename)
-
 
 
 if len(sys.argv) != 2:
